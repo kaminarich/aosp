@@ -1,39 +1,12 @@
-name: Sync RisingOS + Device KJ7
+name: Tes Token Akses GitHub
 
 on:
   workflow_dispatch:
 
 jobs:
-  sync:
+  token:
     runs-on: ubuntu-latest
-
     steps:
-    - name: 📁 Setup rom dir
-      run: mkdir -p rom
-
-    - name: 📥 Init RisingOS repo
-      working-directory: rom
-      run: |
-        repo init -u https://github.com/RisingOS-Revived/android.git -b fifteen --git-lfs
-
-    - name: 🧩 Tambahkan local manifest
-      working-directory: rom/.repo/local_manifests
-      run: |
-        mkdir -p rom/.repo/local_manifests
-        cat <<EOF > rising_kj7.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <remote name="transsion"
-          fetch="https://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@github.com/Transsion-Dev/"
-          revision="lineage-22.1" />
-  <project name="device_tecno_KJ7" path="device/tecno/KJ7" remote="transsion" />
-  <project name="vendor_tecno_KJ7" path="vendor/tecno/KJ7" remote="transsion" />
-  <project name="android_hardware_transsion" path="hardware/transsion" remote="transsion" />
-  <project name="device_tecno_KJ7-kernel" path="kernel/tecno/KJ7" remote="transsion" />
-</manifest>
-EOF
-
-    - name: 🔄 Repo sync
-      working-directory: rom
-      run: |
-        repo sync -j4 --force-sync --no-tags --no-clone-bundle
+      - name: 🔑 Cek akses repo privat
+        run: |
+          git ls-remote https://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@github.com/Transsion-Dev/device_tecno_KJ7.git
