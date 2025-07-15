@@ -1,10 +1,16 @@
-name: Tes Workflow
+name: Tes Repo Init
 
 on:
   workflow_dispatch:
 
 jobs:
-  test:
+  init:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "✅ Workflow berhasil jalan!"
+      - name: 📁 Buat folder rom
+        run: mkdir rom
+
+      - name: 📥 Init RisingOS repo
+        working-directory: rom
+        run: |
+          repo init -u https://github.com/RisingOS-Revived/android.git -b fifteen --git-lfs
