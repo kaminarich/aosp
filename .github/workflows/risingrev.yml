@@ -12,11 +12,11 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev \
-        gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev \
-        x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils \
-        xsltproc unzip fontconfig python-is-python3 repo
+          gcc-multilib g++-multilib libc6-dev-i386 libncurses5-dev \
+          libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils \
+          xsltproc unzip fontconfig python-is-python3 repo
 
-    - name: 📁 Buat folder ROM
+    - name: 📁 Setup ROM directory
       run: mkdir rom
 
     - name: 📥 Init RisingOS repo
@@ -41,19 +41,19 @@ jobs:
         </manifest>
         EOF
 
-    - name: 🔄 Sync source + device
+    - name: 🔄 Repo sync
       working-directory: rom
       run: |
-        repo sync -j4 --force-sync --no-clone-bundle --no-tags
+        repo sync -j4 --force-sync --no-tags --no-clone-bundle
         rm -rf .repo/projects/*/.git .repo/project-objects
 
-    - name: ⚙️ Setup build environment
+    - name: ⚙️ Setup environment & lunch
       working-directory: rom
       run: |
         source build/envsetup.sh
         lunch rising_KJ7-userdebug
 
-    - name: 🚧 Build RisingOS (Vanilla)
+    - name: 🚧 Build ROM
       working-directory: rom
       run: |
         export RISING_MAINTAINER="kaminarich"
@@ -66,15 +66,19 @@ jobs:
         export WITH_MICROG=false
         export TARGET_USES_PICO_GAPPS=false
 
-        mka bacon -j4
+        mka bacon -j$(nproc --all)
 
-    - name: 📤 Upload ke Pixeldrain
+    - name: 📤 Upload hasil ke Pixeldrain
+      if: success()
       working-directory: rom
       run: |
         ZIP=$(find out/target/product/KJ7 -name "*.zip" | head -n 1)
+        echo "📤 Mengupload ke Pixeldrain: $ZIP"
         curl -u :${{ secrets.PIXELDRAIN_TOKEN }} \
              -F file=@"$ZIP" https://pixeldrain.com/api/file
 
-    - name: 🧹 Cleanup agar cukup 14GB
+    - name: 🧹 Cleanup build agar muat
+      if: always()
       working-directory: rom
-      run: rm -rf out/ .repo/manifest.xml .repo/manifests .repo/project-objects
+      run: |
+        rm -rf out/ .repo/project-objects .repo/projects/*/.git
