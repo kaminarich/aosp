@@ -1,4 +1,4 @@
-name: Sync RisingOS + Device KJ7
+name: RisingOS Sync for TECNO KJ7
 
 on:
   workflow_dispatch:
@@ -8,19 +8,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📁 Setup rom dir
-      run: mkdir -p rom
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git-core curl python-is-python3 unzip repo
 
-    - name: 📥 Init RisingOS repo
+    - name: Setup rom folder
+      run: mkdir rom
+
+    - name: Init RisingOS repo
       working-directory: rom
       run: |
         repo init -u https://github.com/RisingOS-Revived/android.git -b fifteen --git-lfs
 
-    - name: 🧩 Tambahkan local manifest
+    - name: Inject local manifest
       working-directory: rom
       run: |
         mkdir -p .repo/local_manifests
-        cat <<EOF > .repo/local_manifests/rising_kj7.xml
+        cat <<EOF > .repo/local_manifests/kj7.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
   <remote name="transsion"
@@ -33,7 +38,7 @@ jobs:
 </manifest>
 EOF
 
-    - name: 🔄 Repo sync
+    - name: Repo sync
       working-directory: rom
       run: |
         repo sync -j4 --force-sync --no-tags --no-clone-bundle
