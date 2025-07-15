@@ -16,7 +16,7 @@ jobs:
           libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils \
           xsltproc unzip fontconfig python-is-python3 repo
 
-    - name: 📁 Setup ROM directory
+    - name: 📁 Setup ROM folder
       run: mkdir rom
 
     - name: 📥 Init RisingOS repo
@@ -24,24 +24,24 @@ jobs:
       run: |
         repo init -u https://github.com/RisingOS-Revived/android.git -b fifteen --git-lfs
 
-    - name: 🧩 Inject local manifest
+    - name: 🧩 Inject local manifest (with token auth)
       working-directory: rom
       run: |
         mkdir -p .repo/local_manifests
-        cat > .repo/local_manifests/kj7.xml <<'EOF'
-        <?xml version="1.0" encoding="UTF-8"?>
-        <manifest>
-          <remote name="transsion"
-                  fetch="https://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@github.com/Transsion-Dev/"
-                  revision="lineage-22.1" />
-          <project name="device_tecno_KJ7" path="device/tecno/KJ7" remote="transsion" />
-          <project name="vendor_tecno_KJ7" path="vendor/tecno/KJ7" remote="transsion" />
-          <project name="android_hardware_transsion" path="hardware/transsion" remote="transsion" />
-          <project name="device_tecno_KJ7-kernel" path="kernel/tecno/KJ7" remote="transsion" />
-        </manifest>
-        EOF
+        cat > .repo/local_manifests/kj7.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="transsion"
+          fetch="https://${{ secrets.GH_TOKEN }}@github.com/Transsion-Dev/"
+          revision="lineage-22.1" />
+  <project name="device_tecno_KJ7" path="device/tecno/KJ7" remote="transsion" />
+  <project name="vendor_tecno_KJ7" path="vendor/tecno/KJ7" remote="transsion" />
+  <project name="android_hardware_transsion" path="hardware/transsion" remote="transsion" />
+  <project name="device_tecno_KJ7-kernel" path="kernel/tecno/KJ7" remote="transsion" />
+</manifest>
+EOF
 
-    - name: 🔄 Repo sync
+    - name: 🔄 Sync source + device tree
       working-directory: rom
       run: |
         repo sync -j4 --force-sync --no-tags --no-clone-bundle
@@ -53,7 +53,7 @@ jobs:
         source build/envsetup.sh
         lunch rising_KJ7-userdebug
 
-    - name: 🚧 Build ROM
+    - name: 🛠️ Build RisingOS (Vanilla)
       working-directory: rom
       run: |
         export RISING_MAINTAINER="kaminarich"
@@ -77,7 +77,7 @@ jobs:
         curl -u :${{ secrets.PIXELDRAIN_TOKEN }} \
              -F file=@"$ZIP" https://pixeldrain.com/api/file
 
-    - name: 🧹 Cleanup build agar muat
+    - name: 🧹 Cleanup
       if: always()
       working-directory: rom
       run: |
