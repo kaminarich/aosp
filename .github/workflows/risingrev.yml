@@ -33,20 +33,18 @@ jobs:
       working-directory: rom
       run: |
         mkdir -p .repo/local_manifests
-        cat > .repo/local_manifests/kj7.xml <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <remote name="transsion"
-          fetch="https://github.com/Transsion-Dev/"
-          revision="lineage-22.1" />
-  <project name="device_tecno_KJ7" path="device/tecno/KJ7" remote="transsion" />
-  <project name="vendor_tecno_KJ7" path="vendor/tecno/KJ7" remote="transsion" />
-  <project name="android_hardware_transsion" path="hardware/transsion" remote="transsion" />
-  <project name="device_tecno_KJ7-kernel" path="kernel/tecno/KJ7" remote="transsion" />
-</manifest>
-EOF
+        echo '<?xml version="1.0" encoding="UTF-8"?>' > .repo/local_manifests/kj7.xml
+        echo '<manifest>' >> .repo/local_manifests/kj7.xml
+        echo '  <remote name="transsion"' >> .repo/local_manifests/kj7.xml
+        echo '          fetch="https://github.com/Transsion-Dev/"' >> .repo/local_manifests/kj7.xml
+        echo '          revision="lineage-22.1" />' >> .repo/local_manifests/kj7.xml
+        echo '  <project name="device_tecno_KJ7" path="device/tecno/KJ7" remote="transsion" />' >> .repo/local_manifests/kj7.xml
+        echo '  <project name="vendor_tecno_KJ7" path="vendor/tecno/KJ7" remote="transsion" />' >> .repo/local_manifests/kj7.xml
+        echo '  <project name="android_hardware_transsion" path="hardware/transsion" remote="transsion" />' >> .repo/local_manifests/kj7.xml
+        echo '  <project name="device_tecno_KJ7-kernel" path="kernel/tecno/KJ7" remote="transsion" />' >> .repo/local_manifests/kj7.xml
+        echo '</manifest>' >> .repo/local_manifests/kj7.xml
 
-    - name: 🔄 Sync sources and device trees
+    - name: 🔄 Sync source and device tree
       working-directory: rom
       run: |
         repo sync -j4 --force-sync --no-tags --no-clone-bundle
