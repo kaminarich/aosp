@@ -16,15 +16,20 @@ jobs:
           libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils \
           xsltproc unzip fontconfig python-is-python3 repo
 
-    - name: 📁 Setup ROM folder
+    - name: 📁 Setup ROM directory
       run: mkdir rom
 
-    - name: 📥 Init RisingOS repo
+    - name: 🔐 Setup GitHub token for private repo access
+      run: |
+        git config --global credential.helper store
+        echo "https://${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
+
+    - name: 📥 Init RisingOS manifest
       working-directory: rom
       run: |
         repo init -u https://github.com/RisingOS-Revived/android.git -b fifteen --git-lfs
 
-    - name: 🧩 Inject local manifest (with token auth)
+    - name: 🧩 Inject local manifest for TECNO KJ7
       working-directory: rom
       run: |
         mkdir -p .repo/local_manifests
@@ -32,7 +37,7 @@ jobs:
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
   <remote name="transsion"
-          fetch="https://${{ secrets.GH_TOKEN }}@github.com/Transsion-Dev/"
+          fetch="https://github.com/Transsion-Dev/"
           revision="lineage-22.1" />
   <project name="device_tecno_KJ7" path="device/tecno/KJ7" remote="transsion" />
   <project name="vendor_tecno_KJ7" path="vendor/tecno/KJ7" remote="transsion" />
@@ -41,19 +46,19 @@ jobs:
 </manifest>
 EOF
 
-    - name: 🔄 Sync source + device tree
+    - name: 🔄 Sync sources and device trees
       working-directory: rom
       run: |
         repo sync -j4 --force-sync --no-tags --no-clone-bundle
         rm -rf .repo/projects/*/.git .repo/project-objects
 
-    - name: ⚙️ Setup environment & lunch
+    - name: ⚙️ Setup build environment
       working-directory: rom
       run: |
         source build/envsetup.sh
         lunch rising_KJ7-userdebug
 
-    - name: 🛠️ Build RisingOS (Vanilla)
+    - name: 🚧 Build RisingOS (Vanilla)
       working-directory: rom
       run: |
         export RISING_MAINTAINER="kaminarich"
@@ -73,11 +78,11 @@ EOF
       working-directory: rom
       run: |
         ZIP=$(find out/target/product/KJ7 -name "*.zip" | head -n 1)
-        echo "📤 Mengupload ke Pixeldrain: $ZIP"
+        echo "📤 Uploading $ZIP"
         curl -u :${{ secrets.PIXELDRAIN_TOKEN }} \
              -F file=@"$ZIP" https://pixeldrain.com/api/file
 
-    - name: 🧹 Cleanup
+    - name: 🧹 Cleanup after build
       if: always()
       working-directory: rom
       run: |
