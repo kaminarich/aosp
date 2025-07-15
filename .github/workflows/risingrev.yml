@@ -1,3 +1,5 @@
+name: Build RisingOS for TECNO KJ7
+
 on:
   workflow_dispatch:
 
@@ -6,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 🔧 Install dependencies
+    - name: 🧰 Install dependencies
       run: |
         sudo apt update
         sudo apt install git-core gnupg flex bison build-essential zip curl zlib1g-dev \
@@ -14,19 +16,19 @@ jobs:
         x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils \
         xsltproc unzip fontconfig repo python-is-python3 -y
 
-    - name: 📁 Create working directory
+    - name: 📁 Setup working directory
       run: mkdir -p rom
 
-    - name: 🧬 Init repo RisingOS
+    - name: 📥 Init RisingOS repo
       working-directory: rom
       run: |
-        repo init -u https://github.com/RisingOS-Revived/android.git -b fifteen
+        repo init -u https://github.com/RisingOS-Revived/android.git -b fifteen --git-lfs
 
     - name: 📄 Add Local Manifest
       working-directory: rom/.repo/local_manifests
       run: |
         mkdir -p rom/.repo/local_manifests
-        cat <<EOF > rising_kj7.xml
+        cat <<EOF > rom/.repo/local_manifests/rising_kj7.xml
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest>
   <remote name="transsion"
@@ -51,10 +53,11 @@ EOF
         source build/envsetup.sh
         lunch rising_KJ7-userdebug
 
-    - name: 🏗️ Build RisingOS (Vanilla)
+    - name: 🏗️ Build ROM (Vanilla, No GMS)
       working-directory: rom
       run: |
         export RISING_MAINTAINER="kaminarich"
+        export PRODUCT_BUILD_PROP_OVERRIDES+=' RisingChipset="Mediatek MT6789" RisingMaintainer="kaminarich"'
         export TARGET_ENABLE_BLUR=false
         export PRODUCT_NO_CAMERA=false
         export TARGET_PREBUILT_LAWNCHAIR_LAUNCHER=false
@@ -62,16 +65,15 @@ EOF
         export WITH_GMS=false
         export WITH_MICROG=false
         export TARGET_USES_PICO_GAPPS=false
-        export PRODUCT_BUILD_PROP_OVERRIDES+=' RisingChipset="Mediatek MT6789" RisingMaintainer="kaminarich"'
         mka bacon -j4
 
-    - name: 📤 Upload final ROM to Pixeldrain
+    - name: 📤 Upload ROM to Pixeldrain
       working-directory: rom
       run: |
-        ZIP_FILE=$(find out/target/product/KJ7 -name "rising_*.zip" | head -n 1)
-        echo "Uploading $ZIP_FILE..."
-        curl -u :${{ 23c84c82-ce06-4e35-bc1f-69eaa13b9958 }} \
-             -F file=@"$ZIP_FILE" https://pixeldrain.com/api/file
+        ZIP=$(find out/target/product/KJ7 -name "rising_*.zip" | head -n 1)
+        echo "Uploading $ZIP"
+        curl -u :${{ secrets.PIXELDRAIN_TOKEN }} \
+             -F file=@"$ZIP" https://pixeldrain.com/api/file
 
     - name: 🧹 Cleanup to save space
       working-directory: rom
