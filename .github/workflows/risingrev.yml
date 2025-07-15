@@ -1,80 +1,10 @@
-name: Build RisingOS for TECNO KJ7
+name: Tes Workflow
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: 🧰 Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install git-core gnupg flex bison build-essential zip curl zlib1g-dev \
-        gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev \
-        x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils \
-        xsltproc unzip fontconfig repo python-is-python3 -y
-
-    - name: 📁 Setup working directory
-      run: mkdir -p rom
-
-    - name: 📥 Init RisingOS repo
-      working-directory: rom
-      run: |
-        repo init -u https://github.com/RisingOS-Revived/android.git -b fifteen --git-lfs
-
-    - name: 📄 Add Local Manifest
-      working-directory: rom/.repo/local_manifests
-      run: |
-        mkdir -p rom/.repo/local_manifests
-        cat <<EOF > rom/.repo/local_manifests/rising_kj7.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <remote name="transsion"
-          fetch="https://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@github.com/Transsion-Dev/"
-          revision="lineage-22.1" />
-  <project name="device_tecno_KJ7" path="device/tecno/KJ7" remote="transsion" />
-  <project name="vendor_tecno_KJ7" path="vendor/tecno/KJ7" remote="transsion" />
-  <project name="android_hardware_transsion" path="hardware/transsion" remote="transsion" />
-  <project name="device_tecno_KJ7-kernel" path="kernel/tecno/KJ7" remote="transsion" />
-</manifest>
-EOF
-
-    - name: 🔄 Sync source
-      working-directory: rom
-      run: |
-        repo sync -j4 --force-sync --no-tags --no-clone-bundle
-        rm -rf .repo/projects/*/.git .repo/project-objects
-
-    - name: ⚙️ Setup build environment
-      working-directory: rom
-      run: |
-        source build/envsetup.sh
-        lunch rising_KJ7-userdebug
-
-    - name: 🏗️ Build ROM (Vanilla, No GMS)
-      working-directory: rom
-      run: |
-        export RISING_MAINTAINER="kaminarich"
-        export PRODUCT_BUILD_PROP_OVERRIDES+=' RisingChipset="Mediatek MT6789" RisingMaintainer="kaminarich"'
-        export TARGET_ENABLE_BLUR=false
-        export PRODUCT_NO_CAMERA=false
-        export TARGET_PREBUILT_LAWNCHAIR_LAUNCHER=false
-        export TARGET_DEFAULT_PIXEL_LAUNCHER=false
-        export WITH_GMS=false
-        export WITH_MICROG=false
-        export TARGET_USES_PICO_GAPPS=false
-        mka bacon -j4
-
-    - name: 📤 Upload ROM to Pixeldrain
-      working-directory: rom
-      run: |
-        ZIP=$(find out/target/product/KJ7 -name "rising_*.zip" | head -n 1)
-        echo "Uploading $ZIP"
-        curl -u :${{ secrets.PIXELDRAIN_TOKEN }} \
-             -F file=@"$ZIP" https://pixeldrain.com/api/file
-
-    - name: 🧹 Cleanup to save space
-      working-directory: rom
-      run: rm -rf out/
+      - run: echo "✅ Workflow berhasil jalan!"
